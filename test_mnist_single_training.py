@@ -35,7 +35,7 @@ class Net(nn.Module):
         return output
 
 
-def train(args, model, device, train_loader, optimizer, epoch, experiment):
+def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -48,9 +48,6 @@ def train(args, model, device, train_loader, optimizer, epoch, experiment):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
-            experiment.log({'train_set': {'epoch': epoch,
-                                          'batch_id': batch_idx,
-                                          'loss': loss.item()}})
             if args.dry_run:
                 break
 
@@ -72,7 +69,6 @@ def test(model, device, test_loader, experiment):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-    experiment.log({'test_set': {'loss': test_loss, 'accuracy':100. * correct / len(test_loader.dataset)}})
     experiment.summary({'loss': test_loss, 'accuracy':100. * correct / len(test_loader.dataset)})
 
 
@@ -135,7 +131,7 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, experiment)
+        train(args, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader, experiment)
         scheduler.step()
 
