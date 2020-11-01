@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import argparse
 import torch
 import torch.nn as nn
@@ -96,8 +97,8 @@ def build_training_parser():
 
     return parser
 
-def run_training(parser, experiment):
-    args = parser.parse_args()
+def run_training(parser, experiment, arg_list = sys.argv[1:]):
+    args = parser.parse_args(arg_list)
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(args.seed)
