@@ -71,9 +71,7 @@ def test(model, device, test_loader, experiment):
         100. * correct / len(test_loader.dataset)))
     experiment.summary({'loss': test_loss, 'accuracy':100. * correct / len(test_loader.dataset)})
 
-
-def main():
-    # Training settings
+def build_training_parser():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
@@ -96,9 +94,9 @@ def main():
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
 
-    Experiment.add_argument_group(parser)
-    experiment = Experiment.from_parser(parser)
+    return parser
 
+def run_training(parser, experiment):
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -118,11 +116,11 @@ def main():
     transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
-        ])
+    ])
     dataset1 = datasets.MNIST('data', train=True, download=True,
-                       transform=transform)
+                              transform=transform)
     dataset2 = datasets.MNIST('data', train=False,
-                       transform=transform)
+                              transform=transform)
     train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
@@ -138,6 +136,13 @@ def main():
     if args.save_model:
         with experiment.open("mnist_cnn.pt", 'wb') as f:
             torch.save(model.state_dict(), f)
+
+def main():
+    # Training settings
+
+    Experiment.add_argument_group(parser)
+    experiment = Experiment.from_parser(parser)
+
 
 
 if __name__ == '__main__':
