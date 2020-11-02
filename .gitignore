@@ -3,3 +3,4 @@ temp_files
 temp_files/experiments_test_experiment_writer.StatusTestCase.test_success
 temp_files/experiments_test_experiment_writer.StatusTestCase.test_running
 temp_files/experiments_test_experiment_writer.StatusTestCase.test_exception
+temp_files/experiments_test_experiment_writer.StatusTestCase.test_exit
