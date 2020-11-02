@@ -68,6 +68,8 @@ class OutputTestCase(unittest.TestCase):
             metadata = json.load(f)
             repo = Repo('', search_parent_directories=True)
             self.assertEqual(metadata['githead-sha'], repo.commit().hexsha, msg="Stored githead-sha doesn't match actual githead-sha")
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def test_args(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -78,6 +80,8 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, args, msg="Stored args don't match actual args")
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def test_default_args(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -88,6 +92,8 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'default_args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, default_args, msg="Stored default args don't match actual default args")
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def test_stdout_redirection(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -106,6 +112,8 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'stderr'), 'r') as f:
             first_line = f.readlines()[0]
             self.assertEqual(stderr_text, first_line.strip(), msg="Error with stderr redirection")
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
