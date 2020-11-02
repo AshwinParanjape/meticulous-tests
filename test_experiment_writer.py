@@ -16,7 +16,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 class DirtyRepoTestCase(unittest.TestCase):
     def setUp(self):
         #Dirty a file in the repo
-        with open('simulated_files/dirty_file.txt', 'w') as f:
+        with open(os.path.join('simulated_files', 'dirty_file.txt'), 'w') as f:
             f.write('made dirty')
         self.parser = build_training_parser()
         Experiment.add_argument_group(self.parser)
@@ -26,13 +26,13 @@ class DirtyRepoTestCase(unittest.TestCase):
             Experiment.from_parser(self.parser)
 
     def tearDown(self):
-        with open('simulated_files/dirty_file.txt', 'w') as f:
+        with open(os.path.join('simulated_files','dirty_file.txt'), 'w') as f:
             pass
 
 class StatusTestCase(unittest.TestCase):
     # These tests are invoked with subproccess because they test behaviour at program exit
     def setUp(self):
-        self.experiments_folder_id = 'temp_files/experiments_'+self.id()
+        self.experiments_folder_id = os.path.join('temp_files','experiments_'+self.id())
         self.arg_list = ['--dry-run', '--epochs', '1', '--experiments-directory', self.experiments_folder_id]
 
     def test_success(self):
@@ -56,7 +56,7 @@ class StatusTestCase(unittest.TestCase):
 
 class OutputTestCase(unittest.TestCase):
     def setUp(self):
-        self.experiments_folder_id = 'temp_files/experiments_'+self.id()
+        self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
         self.original_args_list = ['--dry-run', '--epochs', '1']
         self.meticulous_args_list = ['--experiments-directory', self.experiments_folder_id]
 
