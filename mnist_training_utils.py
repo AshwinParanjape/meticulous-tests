@@ -140,9 +140,10 @@ def run_training(parser, experiment, arg_list = sys.argv[1:]):
 
 def main():
     # Training settings
-
+    parser = build_training_parser()
     Experiment.add_argument_group(parser)
     experiment = Experiment.from_parser(parser)
+    run_training(parser, experiment)
 
 
 
