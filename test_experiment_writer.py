@@ -1,5 +1,5 @@
 import unittest
-from training_utils import build_training_parser
+from .training_utils import build_training_parser
 import subprocess
 import json
 from meticulous import Experiment
