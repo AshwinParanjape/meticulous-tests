@@ -98,7 +98,6 @@ class OutputTestCase(unittest.TestCase):
     def test_stdout_redirection(self):
         args_list = self.original_args_list + ['--seed', '234']
         parser = build_training_parser()
-        default_args = vars(parser.parse_args([]))
         Experiment.add_argument_group(parser)
         experiment = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
         stdout_text = 'stdout redirection text'
@@ -114,6 +113,20 @@ class OutputTestCase(unittest.TestCase):
             self.assertEqual(stderr_text, first_line.strip(), msg="Error with stderr redirection")
         experiment.stdout.close()
         experiment.stderr.close()
+
+    def test_two_experiments(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        experiment1 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '1')))
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '2')))
+        experiment1.stdout.close()
+        experiment1.stderr.close()
+        experiment2.stdout.close()
+        experiment2.stderr.close()
+
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
