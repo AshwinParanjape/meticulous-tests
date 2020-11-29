@@ -174,6 +174,8 @@ class OutputTestCase(unittest.TestCase):
         del experiment
         experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
         experiment.curexpdir=2
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def test_failure_on_arg_change_for_resumed_experiment(self):
         args_list1 = self.original_args_list + ['--seed', '234']
