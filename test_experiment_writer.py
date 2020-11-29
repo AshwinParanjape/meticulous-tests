@@ -162,6 +162,17 @@ class OutputTestCase(unittest.TestCase):
         experiment2.stdout.close()
         experiment2.stderr.close()
 
+    def test_override_default_meticulous_args(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        args = vars(parser.parse_args(args_list))
+        Experiment.add_argument_group(parser, description='Test override')
+        experiment = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertEqual(metadata['description'], 'Test override')
+        experiment.stdout.close()
+        experiment.stderr.close()
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
