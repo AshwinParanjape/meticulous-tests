@@ -48,7 +48,9 @@ class StatusTestCase(unittest.TestCase):
     def test_exception(self):
         subprocess.run(['python', 'exit_testing_helper_exception.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
-            self.assertEqual(f.readlines()[0].strip(), 'Traceback (most recent call last):')
+            lines = f.readlines()
+            self.assertEqual(lines[0].strip(), 'ERROR')
+            self.assertEqual(lines[1].strip(), 'Traceback (most recent call last):')
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
