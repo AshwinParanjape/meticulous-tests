@@ -69,7 +69,14 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
             metadata = json.load(f)
             repo = Repo('', search_parent_directories=True)
-            self.assertEqual(metadata['githead-sha'], repo.commit().hexsha, msg="Stored githead-sha doesn't match actual githead-sha")
+            commit = repo.commit()
+            self.assertEqual(metadata['githead-sha'], commit.hexsha, msg="Stored githead-sha doesn't match actual githead-sha")
+            self.assertEqual(metadata['githead-sha'], commit.message,
+                             msg="Stored commit message doesn't match actual commit message")
+            self.assertIn('start-time', metadata)
+            self.assertIn('end-time', metadata)
+            self.assertIn('description', metadata)
+            self.assertIn('command', metadata)
         experiment.stdout.close()
         experiment.stderr.close()
 
