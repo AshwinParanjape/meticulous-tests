@@ -3,7 +3,7 @@ from .training_utils import build_training_parser
 import subprocess
 import json
 from meticulous import Experiment
-from meticulous.experiment import DirtyRepoException
+from meticulous.experiment import DirtyRepoException, MismatchedArgsException
 import random, string
 import os
 import shutil
@@ -163,6 +163,31 @@ class OutputTestCase(unittest.TestCase):
         experiment1.stderr.close()
         experiment2.stdout.close()
         experiment2.stderr.close()
+
+    def test_resuming_experiment(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        experiment = Experiment.from_parser(parser, args_list+self.meticulous_args_list + ['--experiment-id', '2'])
+        experiment.stdout.close()
+        experiment.stderr.close()
+        del experiment
+        experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
+        experiment.curexpdir=2
+
+    def test_failure_on_arg_change_for_resumed_experiment(self):
+        args_list1 = self.original_args_list + ['--seed', '234']
+        args_list2 = self.original_args_list + ['--seed', '235']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        experiment = Experiment.from_parser(parser, args_list1+self.meticulous_args_list + ['--experiment-id', '2'])
+        experiment.stdout.close()
+        experiment.stderr.close()
+        del experiment
+        with self.assertRaises(MismatchedArgsException):
+            experiment = Experiment.from_parser(parser, args_list2 + self.meticulous_args_list + ['--experiment-id', '2'])
+            experiment.stdout.close()
+            experiment.stderr.close()
 
     def test_noninteger_experiment_id(self):
         args_list = self.original_args_list + ['--seed', '234']
