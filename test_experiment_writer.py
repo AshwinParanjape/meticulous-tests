@@ -29,6 +29,35 @@ class DirtyRepoTestCase(unittest.TestCase):
         with open(os.path.join('simulated_files','dirty_file.txt'), 'w') as f:
             pass
 
+class EndTimeTestCase(unittest.TestCase):
+    # These tests are invoked with subproccess because they test behaviour at program exit
+    def setUp(self):
+        self.experiments_folder_id = os.path.join('temp_files', 'experiments_' + self.id())
+        self.arg_list = ['--dry-run', '--epochs', '1', '--experiments-directory', self.experiments_folder_id]
+
+    def test_success(self):
+        subprocess.run(['python', 'exit_testing_helper_success.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn('end-time', metadata)
+
+    def test_exit(self):
+        subprocess.run(['python', 'exit_testing_helper_exit.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn('end-time', metadata)
+
+    def test_exception(self):
+        subprocess.run(['python', 'exit_testing_helper_exception.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn('end-time', metadata)
+
+    def tearDown(self):
+        shutil.rmtree(self.experiments_folder_id)
+        pass
+
+
 class StatusTestCase(unittest.TestCase):
     # These tests are invoked with subproccess because they test behaviour at program exit
     def setUp(self):
@@ -74,7 +103,6 @@ class OutputTestCase(unittest.TestCase):
             self.assertEqual(metadata['githead-message'], commit.message,
                              msg="Stored commit message doesn't match actual commit message")
             self.assertIn('start-time', metadata)
-            self.assertIn('end-time', metadata)
             self.assertIn('description', metadata)
             self.assertIn('command', metadata)
         experiment.stdout.close()
