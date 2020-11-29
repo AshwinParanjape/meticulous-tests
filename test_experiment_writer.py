@@ -71,7 +71,7 @@ class OutputTestCase(unittest.TestCase):
             repo = Repo('', search_parent_directories=True)
             commit = repo.commit()
             self.assertEqual(metadata['githead-sha'], commit.hexsha, msg="Stored githead-sha doesn't match actual githead-sha")
-            self.assertEqual(metadata['githead-sha'], commit.message,
+            self.assertEqual(metadata['githead-message'], commit.message,
                              msg="Stored commit message doesn't match actual commit message")
             self.assertIn('start-time', metadata)
             self.assertIn('end-time', metadata)
@@ -123,7 +123,33 @@ class OutputTestCase(unittest.TestCase):
         experiment.stdout.close()
         experiment.stderr.close()
 
-    def test_two_experiments(self):
+    def test_given_experiment_id(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        experiment1 = Experiment.from_parser(parser, args_list+self.meticulous_args_list + ['--experiment-id', '2'])
+        experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '2')))
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '3')))
+        experiment1.stdout.close()
+        experiment1.stderr.close()
+        experiment2.stdout.close()
+        experiment2.stderr.close()
+
+    def test_noninteger_experiment_id(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        experiment1 = Experiment.from_parser(parser, args_list+self.meticulous_args_list + ['--experiment-id', 'a'])
+        experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, 'a')))
+        self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '1')))
+        experiment1.stdout.close()
+        experiment1.stderr.close()
+        experiment2.stdout.close()
+        experiment2.stderr.close()
+
+    def test_noninteger_experiments(self):
         args_list = self.original_args_list + ['--seed', '234']
         parser = build_training_parser()
         Experiment.add_argument_group(parser)
