@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 from meticulous import Experiment
+import random
 
 def build_training_parser():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -32,6 +33,7 @@ def main():
     parser = build_training_parser()
     Experiment.add_argument_group(parser)
     experiment = Experiment.from_parser(parser)
+    experiment.summary({'val_loss': random.random()})
 
 
 
