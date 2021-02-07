@@ -54,7 +54,7 @@ class EndTimeTestCase(unittest.TestCase):
             self.assertIn('end-time', metadata)
 
     def tearDown(self):
-        # shutil.rmtree(self.experiments_folder_id)
+        shutil.rmtree(self.experiments_folder_id)
         pass
 
 
@@ -82,7 +82,7 @@ class StatusTestCase(unittest.TestCase):
             self.assertEqual(lines[1].strip(), 'Traceback (most recent call last):')
 
     def tearDown(self):
-        # shutil.rmtree(self.experiments_folder_id)
+        shutil.rmtree(self.experiments_folder_id)
         pass
 
 class OutputTestCase(unittest.TestCase):
@@ -105,8 +105,8 @@ class OutputTestCase(unittest.TestCase):
             self.assertIn('start-time', metadata)
             self.assertIn('description', metadata)
             self.assertIn('command', metadata)
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
+
 
     def test_args(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -117,8 +117,8 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, args, msg="Stored args don't match actual args")
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
+
 
     def test_default_args(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -129,8 +129,7 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'default_args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, default_args, msg="Stored default args don't match actual default args")
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
 
     def test_stdout_redirection(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -148,8 +147,7 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'stderr'), 'r') as f:
             first_line = f.readlines()[0]
             self.assertEqual(stderr_text, first_line.strip(), msg="Error with stderr redirection")
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
 
     def test_given_experiment_id(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -159,23 +157,20 @@ class OutputTestCase(unittest.TestCase):
         experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '2')))
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '3')))
-        experiment1.stdout.close()
-        experiment1.stderr.close()
-        experiment2.stdout.close()
-        experiment2.stderr.close()
+        experiment1.finish()
+        experiment2.finish()
 
     def test_resuming_experiment(self):
         args_list = self.original_args_list + ['--seed', '234']
         parser = build_training_parser()
         Experiment.add_argument_group(parser)
-        experiment = Experiment.from_parser(parser, args_list+self.meticulous_args_list + ['--experiment-id', '2'])
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
+        experiment.finish()
         del experiment
         experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
-        experiment.curexpdir=2
-        experiment.stdout.close()
-        experiment.stderr.close()
+        # We should make it to here without an MismatchedArgsException or a MismatchedCommitException.
+        self.assertTrue(experiment.curexpdir.endswith("/2"))
+        experiment.finish()
 
     def test_failure_on_arg_change_for_resumed_experiment(self):
         args_list1 = self.original_args_list + ['--seed', '234']
@@ -183,13 +178,11 @@ class OutputTestCase(unittest.TestCase):
         parser = build_training_parser()
         Experiment.add_argument_group(parser)
         experiment = Experiment.from_parser(parser, args_list1+self.meticulous_args_list + ['--experiment-id', '2'])
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
         del experiment
         with self.assertRaises(MismatchedArgsException):
             experiment = Experiment.from_parser(parser, args_list2 + self.meticulous_args_list + ['--experiment-id', '2'])
-            experiment.stdout.close()
-            experiment.stderr.close()
+            experiment.finish()
 
     def test_noninteger_experiment_id(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -199,10 +192,8 @@ class OutputTestCase(unittest.TestCase):
         experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, 'a')))
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '1')))
-        experiment1.stdout.close()
-        experiment1.stderr.close()
-        experiment2.stdout.close()
-        experiment2.stderr.close()
+        experiment1.finish()
+        experiment2.finish()
 
     def test_noninteger_experiments(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -212,10 +203,8 @@ class OutputTestCase(unittest.TestCase):
         experiment2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '1')))
         self.assertTrue(os.path.exists(os.path.join(self.experiments_folder_id, '2')))
-        experiment1.stdout.close()
-        experiment1.stderr.close()
-        experiment2.stdout.close()
-        experiment2.stderr.close()
+        experiment1.finish()
+        experiment2.finish()
 
     def test_override_default_meticulous_args(self):
         args_list = self.original_args_list + ['--seed', '234']
@@ -226,9 +215,9 @@ class OutputTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
             metadata = json.load(f)
             self.assertEqual(metadata['description'], 'Test override')
-        experiment.stdout.close()
-        experiment.stderr.close()
+        experiment.finish()
+
 
     def tearDown(self):
-        # shutil.rmtree(self.experiments_folder_id)
+        shutil.rmtree(self.experiments_folder_id)
         pass
