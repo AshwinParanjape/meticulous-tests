@@ -54,7 +54,7 @@ class EndTimeTestCase(unittest.TestCase):
             self.assertIn('end-time', metadata)
 
     def tearDown(self):
-        shutil.rmtree(self.experiments_folder_id)
+        # shutil.rmtree(self.experiments_folder_id)
         pass
 
 
@@ -82,7 +82,7 @@ class StatusTestCase(unittest.TestCase):
             self.assertEqual(lines[1].strip(), 'Traceback (most recent call last):')
 
     def tearDown(self):
-        shutil.rmtree(self.experiments_folder_id)
+        # shutil.rmtree(self.experiments_folder_id)
         pass
 
 class OutputTestCase(unittest.TestCase):
@@ -230,5 +230,5 @@ class OutputTestCase(unittest.TestCase):
         experiment.stderr.close()
 
     def tearDown(self):
-        shutil.rmtree(self.experiments_folder_id)
+        # shutil.rmtree(self.experiments_folder_id)
         pass
