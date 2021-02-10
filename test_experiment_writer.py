@@ -85,6 +85,34 @@ class StatusTestCase(unittest.TestCase):
         shutil.rmtree(self.experiments_folder_id)
         pass
 
+class ContextManagerStatusTestCase(unittest.TestCase):
+    # These tests are invoked with subproccess because they test behaviour at program exit
+    def setUp(self):
+        self.experiments_folder_id = os.path.join('temp_files','experiments_'+self.id())
+        self.arg_list = ['--dry-run', '--epochs', '1', '--experiments-directory', self.experiments_folder_id]
+
+    def test_success(self):
+        subprocess.run(['python', 'exit_testing_cm_helper_success.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
+            self.assertEqual(f.readlines()[0].strip(), 'SUCCESS')
+
+    def test_exit(self):
+        subprocess.run(['python', 'exit_testing_cm_helper_exit.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
+            self.assertEqual(f.readlines()[0].strip(), 'ERROR')
+
+    def test_exception(self):
+        subprocess.run(['python', 'exit_testing_cm_helper_exception.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
+            lines = f.readlines()
+            self.assertEqual(lines[0].strip(), 'ERROR')
+            self.assertEqual(lines[1].strip(), 'Traceback (most recent call last):')
+
+    def tearDown(self):
+        shutil.rmtree(self.experiments_folder_id)
+        pass
+
+
 class OutputTestCase(unittest.TestCase):
     def setUp(self):
         self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
@@ -169,6 +197,7 @@ class OutputTestCase(unittest.TestCase):
         del experiment
         experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
         # We should make it to here without an MismatchedArgsException or a MismatchedCommitException.
+        # The experiment dir should be the 2/ located in the right tempfile
         self.assertTrue(experiment.curexpdir.endswith("/2"))
         experiment.finish()
 
