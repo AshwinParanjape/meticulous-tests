@@ -75,9 +75,9 @@ class ContextManagerEndTimeTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '3', 'metadata.json'), 'r') as f:
             metadata3 = json.load(f)
             self.assertIn('end-time', metadata3)
-        end_time1 = datetime.datetime.fromisoformat(metadata1["end-time"])
-        end_time2 = datetime.datetime.fromisoformat(metadata2["end-time"])
-        end_time3 = datetime.datetime.fromisoformat(metadata3["end-time"])
+        end_time1 = datetime.datetime.strptime(metadata1["end-time"], "%Y-%m-%dT%H:%M:%S.%f")
+        end_time2 = datetime.datetime.strptime(metadata2["end-time"], "%Y-%m-%dT%H:%M:%S.%f")
+        end_time3 = datetime.datetime.strptime(metadata3["end-time"], "%Y-%m-%dT%H:%M:%S.%f")
         self.assertTrue(end_time2 - end_time1 < datetime.timedelta(seconds=1))
         self.assertTrue(end_time3 - end_time2 > datetime.timedelta(seconds=1))
 
@@ -89,8 +89,8 @@ class ContextManagerEndTimeTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '2', 'metadata.json'), 'r') as f:
             metadata2 = json.load(f)
             self.assertIn('end-time', metadata2)
-        end_time1 = datetime.datetime.fromisoformat(metadata1["end-time"])
-        end_time2 = datetime.datetime.fromisoformat(metadata2["end-time"])
+        end_time1 = datetime.datetime.strptime(metadata1["end-time"], "%Y-%m-%dT%H:%M:%S.%f")
+        end_time2 = datetime.datetime.strptime(metadata2["end-time"], "%Y-%m-%dT%H:%M:%S.%f")
         self.assertTrue(end_time2 - end_time1 > datetime.timedelta(seconds=1))
 
     def tearDown(self):
