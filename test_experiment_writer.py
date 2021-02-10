@@ -322,7 +322,7 @@ class OutputTestCase(unittest.TestCase):
         experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list + ['--experiment-id', '2'])
         # We should make it to here without an MismatchedArgsException or a MismatchedCommitException.
         # The experiment dir should be the 2/ located in the right tempfile
-        self.assertTrue(experiment.curexpdir.endswith("/2"))
+        self.assertTrue(experiment.curexpdir.endswith("2"))
         experiment.finish()
 
     def test_failure_on_arg_change_for_resumed_experiment(self):
