@@ -6,6 +6,8 @@ def raise_exception():
     Experiment.add_argument_group(parser)
     with Experiment.from_parser(parser) as exp:
         raise Exception
+    Experiment.from_parser(parser)
+    raise Exception
 
 if __name__ == '__main__':
     raise_exception()

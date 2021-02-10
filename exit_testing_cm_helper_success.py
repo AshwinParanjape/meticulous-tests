@@ -5,7 +5,9 @@ def successful_exit():
     parser = build_training_parser()
     Experiment.add_argument_group(parser)
     with Experiment.from_parser(parser) as exp:
-        return
+        pass
+    Experiment.from_parser(parser).finish()
+    Experiment.from_parser(parser)
 
 if __name__ == '__main__':
     successful_exit()

@@ -86,6 +86,7 @@ class StatusTestCase(unittest.TestCase):
         pass
 
 class ContextManagerStatusTestCase(unittest.TestCase):
+    """Test whether experiments in context manager produce the same output as 'global' experiments"""
     # These tests are invoked with subproccess because they test behaviour at program exit
     def setUp(self):
         self.experiments_folder_id = os.path.join('temp_files','experiments_'+self.id())
@@ -94,19 +95,31 @@ class ContextManagerStatusTestCase(unittest.TestCase):
     def test_success(self):
         subprocess.run(['python', 'exit_testing_cm_helper_success.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
-            self.assertEqual(f.readlines()[0].strip(), 'SUCCESS')
+            exp1 = f.readlines()[0].strip()
+        with open(os.path.join(self.experiments_folder_id, '2', 'STATUS'), 'r') as f:
+            exp2 = f.readlines()[0].strip()
+        with open(os.path.join(self.experiments_folder_id, '3', 'STATUS'), 'r') as f:
+            exp3 = f.readlines()[0].strip()
+        self.assertEqual(exp1, 'SUCCESS')
+        self.assertEqual(exp1, exp2)
+        self.assertEqual(exp2, exp3)
 
     def test_exit(self):
         subprocess.run(['python', 'exit_testing_cm_helper_exit.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
-            self.assertEqual(f.readlines()[0].strip(), 'ERROR')
+            self.assertEqual(f.readlines()[0].strip(),'ERROR')
 
     def test_exception(self):
         subprocess.run(['python', 'exit_testing_cm_helper_exception.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
-            lines = f.readlines()
-            self.assertEqual(lines[0].strip(), 'ERROR')
-            self.assertEqual(lines[1].strip(), 'Traceback (most recent call last):')
+            lines1 = f.readlines()
+        with open(os.path.join(self.experiments_folder_id, '2', 'STATUS'), 'r') as f:
+            lines2 = f.readlines()
+        self.assertEqual(lines1[0].strip(), 'ERROR')
+        self.assertEqual(lines1[1].strip(), 'Traceback (most recent call last):')
+        # Test that the context manager (id 2) produces the same output as the global experiment (id 1)
+        self.assertEqual(lines1[0].strip(), lines2[0].strip())
+        self.assertEqual(lines1[1].strip(), lines2[1].strip())
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
