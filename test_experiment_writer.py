@@ -94,15 +94,19 @@ class ContextManagerStatusTestCase(unittest.TestCase):
 
     def test_success(self):
         subprocess.run(['python', 'exit_testing_cm_helper_success.py', ]+self.arg_list)
+        # Context Manager
         with open(os.path.join(self.experiments_folder_id, '1', 'STATUS'), 'r') as f:
             exp1 = f.readlines()[0].strip()
+        # Experiment where we call 'finish' manually
         with open(os.path.join(self.experiments_folder_id, '2', 'STATUS'), 'r') as f:
             exp2 = f.readlines()[0].strip()
+        # Experiment that is terminated on exit
         with open(os.path.join(self.experiments_folder_id, '3', 'STATUS'), 'r') as f:
             exp3 = f.readlines()[0].strip()
         self.assertEqual(exp1, 'SUCCESS')
         self.assertEqual(exp1, exp2)
         self.assertEqual(exp2, exp3)
+        # All experiments returned SUCCESS successfully
 
     def test_exit(self):
         subprocess.run(['python', 'exit_testing_cm_helper_exit.py', ]+self.arg_list)
@@ -172,6 +176,43 @@ class OutputTestCase(unittest.TestCase):
             self.assertDictEqual(stored_args, default_args, msg="Stored default args don't match actual default args")
         experiment.finish()
 
+    def test_nested_stdout_redirection(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        stdout_text1, stderr_text1 = "stdout redirection text 1", "stderr redirection text 1"
+        stdout_text2, stderr_text2 = "stdout redirection text 2", "stderr redirection text 2"
+        stdout_text3, stderr_text3 = "stdout redirection text 3", "stderr redirection text 3"
+        outer_experiment = Experiment.from_parser(parser, args_list + self.meticulous_args_list)
+        print(stdout_text1)
+        print(stderr_text1, file=sys.stderr)
+        with Experiment.from_parser(parser, args_list + self.meticulous_args_list) as inner_experiment:
+            print(stdout_text2)
+            print(stderr_text2, file=sys.stderr)
+        print(stdout_text3)
+        print(stderr_text3, file=sys.stderr)
+        outer_experiment.finish()
+
+        with open(os.path.join(self.experiments_folder_id, '1', 'stdout'), 'r') as f:
+            lines = f.readlines()
+            self.assertEqual(stdout_text1, lines[0].strip(), msg="Error with stdout redirection")
+            self.assertEqual(stdout_text2, lines[1].strip(), msg="Error with stdout redirection")
+            self.assertEqual(stdout_text3, lines[2].strip(), msg="Error with stdout redirection")
+
+        with open(os.path.join(self.experiments_folder_id, '1', 'stderr'), 'r') as f:
+            lines = f.readlines()
+            self.assertEqual(stderr_text1, lines[0].strip(), msg="Error with stderr redirection")
+            self.assertEqual(stderr_text2, lines[1].strip(), msg="Error with stderr redirection")
+            self.assertEqual(stderr_text3, lines[2].strip(), msg="Error with stderr redirection")
+
+        with open(os.path.join(self.experiments_folder_id, '2', 'stdout'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stdout_text2, first_line.strip(), msg="Error with stdout redirection")
+
+        with open(os.path.join(self.experiments_folder_id, '2', 'stderr'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stderr_text2, first_line.strip(), msg="Error with stderr redirection")
+
     def test_stdout_redirection(self):
         args_list = self.original_args_list + ['--seed', '234']
         parser = build_training_parser()
@@ -189,7 +230,37 @@ class OutputTestCase(unittest.TestCase):
             first_line = f.readlines()[0]
             self.assertEqual(stderr_text, first_line.strip(), msg="Error with stderr redirection")
         experiment.finish()
+    def test_sequential_stdout_redirection(self):
+        args_list = self.original_args_list + ['--seed', '234']
+        parser = build_training_parser()
+        Experiment.add_argument_group(parser)
+        stdout_text1 = "stdout redirection text 1"
+        stderr_text1 = "stderr redirection text 1"
+        stdout_text2 = "stdout redirection text 2"
+        stderr_text2 = "stderr redirection text 2"
+        with Experiment.from_parser(parser, args_list+self.meticulous_args_list) as exp:
+            print(stdout_text1)
+            print(stderr_text1, file=sys.stderr)
+        exp2 = Experiment.from_parser(parser, args_list+self.meticulous_args_list)
+        print(stdout_text2)
+        print(stderr_text2, file=sys.stderr)
+        exp2.finish()
+        with open(os.path.join(self.experiments_folder_id, '1', 'stdout'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stdout_text1, first_line.strip(), msg="Error with stdout redirection")
 
+        with open(os.path.join(self.experiments_folder_id, '1', 'stderr'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stderr_text1, first_line.strip(), msg="Error with stderr redirection")
+
+        with open(os.path.join(self.experiments_folder_id, '2', 'stdout'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stdout_text2, first_line.strip(), msg="Error with stdout redirection")
+
+        with open(os.path.join(self.experiments_folder_id, '2', 'stderr'), 'r') as f:
+            first_line = f.readlines()[0]
+            self.assertEqual(stderr_text2, first_line.strip(), msg="Error with stderr redirection")
+    
     def test_given_experiment_id(self):
         args_list = self.original_args_list + ['--seed', '234']
         parser = build_training_parser()
