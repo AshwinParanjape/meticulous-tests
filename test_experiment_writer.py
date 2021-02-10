@@ -8,6 +8,7 @@ import random, string
 import os
 import shutil
 import sys
+import datetime
 from git import Repo
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -40,6 +41,45 @@ class EndTimeTestCase(unittest.TestCase):
         with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
             metadata = json.load(f)
             self.assertIn('end-time', metadata)
+
+    def test_exit(self):
+        subprocess.run(['python', 'exit_testing_helper_exit.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn('end-time', metadata)
+
+    def test_exception(self):
+        subprocess.run(['python', 'exit_testing_helper_exception.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn('end-time', metadata)
+
+    def tearDown(self):
+        shutil.rmtree(self.experiments_folder_id)
+        pass
+
+class ContextManagerEndTimeTestCase(unittest.TestCase):
+    # These tests are invoked with subproccess because they test behaviour at program exit
+    def setUp(self):
+        self.experiments_folder_id = os.path.join('temp_files', 'experiments_' + self.id())
+        self.arg_list = ['--dry-run', '--epochs', '1', '--experiments-directory', self.experiments_folder_id]
+
+    def test_success(self):
+        subprocess.run(['python', 'exit_testing_helper_success.py', ]+self.arg_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata1 = json.load(f)
+            self.assertIn('end-time', metadata1)
+        with open(os.path.join(self.experiments_folder_id, '2', 'metadata.json'), 'r') as f:
+            metadata2 = json.load(f)
+            self.assertIn('end-time', metadata2)
+        with open(os.path.join(self.experiments_folder_id, '3', 'metadata.json'), 'r') as f:
+            metadata3 = json.load(f)
+            self.assertIn('end-time', metadata3)
+        end_time1 = datetime.datetime.fromisoformat(metadata1["end-time"])
+        end_time2 = datetime.datetime.fromisoformat(metadata2["end-time"])
+        end_time3 = datetime.datetime.fromisoformat(metadata3["end-time"])
+        self.assertTrue(end_time2 - end_time1 < datetime.timedelta(seconds=1))
+        self.assertTrue(end_time3 - end_time2 > datetime.timedelta(seconds=1))
 
     def test_exit(self):
         subprocess.run(['python', 'exit_testing_helper_exit.py', ]+self.arg_list)
