@@ -65,7 +65,7 @@ class ContextManagerEndTimeTestCase(unittest.TestCase):
         self.arg_list = ['--dry-run', '--epochs', '1', '--experiments-directory', self.experiments_folder_id]
 
     def test_success(self):
-        subprocess.run(['python', 'exit_testing_helper_success.py', ]+self.arg_list)
+        subprocess.run(['python', 'exit_testing_cm_helper_success.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
             metadata1 = json.load(f)
             self.assertIn('end-time', metadata1)
@@ -81,17 +81,17 @@ class ContextManagerEndTimeTestCase(unittest.TestCase):
         self.assertTrue(end_time2 - end_time1 < datetime.timedelta(seconds=1))
         self.assertTrue(end_time3 - end_time2 > datetime.timedelta(seconds=1))
 
-    def test_exit(self):
-        subprocess.run(['python', 'exit_testing_helper_exit.py', ]+self.arg_list)
-        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
-            metadata = json.load(f)
-            self.assertIn('end-time', metadata)
-
     def test_exception(self):
-        subprocess.run(['python', 'exit_testing_helper_exception.py', ]+self.arg_list)
+        subprocess.run(['python', 'exit_testing_cm_helper_exception.py', ]+self.arg_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
-            metadata = json.load(f)
-            self.assertIn('end-time', metadata)
+            metadata1 = json.load(f)
+            self.assertIn('end-time', metadata1)
+        with open(os.path.join(self.experiments_folder_id, '2', 'metadata.json'), 'r') as f:
+            metadata2 = json.load(f)
+            self.assertIn('end-time', metadata2)
+        end_time1 = datetime.datetime.fromisoformat(metadata1["end-time"])
+        end_time2 = datetime.datetime.fromisoformat(metadata2["end-time"])
+        self.assertTrue(end_time2 - end_time1 > datetime.timedelta(seconds=1))
 
     def tearDown(self):
         shutil.rmtree(self.experiments_folder_id)
