@@ -16,6 +16,9 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 class DirtyRepoTestCase(unittest.TestCase):
     def setUp(self):
+        self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
+        self.original_args_list = ['--dry-run', '--epochs', '1']
+        self.meticulous_args_list = ['--experiments-directory', self.experiments_folder_id]
         #Dirty a file in the repo
         with open(os.path.join('simulated_files', 'dirty_file.txt'), 'w') as f:
             f.write('made dirty')
@@ -23,8 +26,11 @@ class DirtyRepoTestCase(unittest.TestCase):
         Experiment.add_argument_group(self.parser)
 
     def test_dirty_repo(self):
-        with self.assertRaises(DirtyRepoException):
-            Experiment.from_parser(self.parser)
+        #with self.assertRaises(DirtyRepoException):
+        exp = Experiment.from_parser(self.parser, self.original_args_list+self.meticulous_args_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+            self.assertIn("git-dirty", metadata)
 
     def tearDown(self):
         with open(os.path.join('simulated_files','dirty_file.txt'), 'w') as f:
