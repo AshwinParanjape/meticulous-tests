@@ -16,7 +16,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 class RequiredArgsTestCase(unittest.TestCase):
     def setUp(self):
         self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
-        self.original_args_list = ['--test-batch-size', '2', '16']
+        self.original_args_list = ['16', '--test-batch-size', '2']
         self.meticulous_args_list = ['--experiments-directory', self.experiments_folder_id]
 
     def test_args(self):
