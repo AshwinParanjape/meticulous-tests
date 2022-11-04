@@ -16,14 +16,14 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 class RequiredArgsTestCase(unittest.TestCase):
     def setUp(self):
         self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
-        self.original_args_list = ['16', '--dry-run', '--epochs', '1']
+        self.original_args_list = ['--test-batch-size', '2', '16']
         self.meticulous_args_list = ['--experiments-directory', self.experiments_folder_id]
-        Experiment.add_argument_group(self.parser)
 
     def test_args(self):
         parser = build_training_parser_with_required_args()
         args = vars(parser.parse_args(self.original_args_list))
-        exp = Experiment.from_parser(parser, self.original_args_list+self.meticulous_args_list)
+        Experiment.add_argument_group(parser)
+        exp = Experiment.from_parser(parser, arg_list=self.original_args_list+self.meticulous_args_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, args, msg="Stored args don't match actual args")
@@ -33,9 +33,9 @@ class RequiredArgsTestCase(unittest.TestCase):
     def test_default_args(self):
         parser = build_training_parser_with_required_args()
         default_args = vars(parser.parse_args(['16']))
-        del default_args['batch-size']
+        del default_args['batchsize']
         Experiment.add_argument_group(parser)
-        experiment = Experiment.from_parser(parser, self.original_args_list+self.meticulous_args_list)
+        experiment = Experiment.from_parser(parser, arg_list=self.original_args_list+self.meticulous_args_list)
         with open(os.path.join(self.experiments_folder_id, '1', 'default_args.json'), 'r') as f:
             stored_args = json.load(f)
             self.assertDictEqual(stored_args, default_args, msg="Stored default args don't match actual default args")
