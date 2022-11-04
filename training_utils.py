@@ -28,6 +28,14 @@ def build_training_parser():
 
     return parser
 
+def build_training_parser_with_required_args():
+    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    parser.add_argument('batch-size', type=int, metavar='N',
+                        help='input batch size for training (default: 64)')
+    parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
+                        help='input batch size for testing (default: 1000)')
+    return parser
+    
 def main():
     # Training settings
     parser = build_training_parser()
