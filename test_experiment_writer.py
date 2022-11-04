@@ -26,11 +26,11 @@ class DirtyRepoTestCase(unittest.TestCase):
         Experiment.add_argument_group(self.parser)
 
     def test_dirty_repo(self):
-        #with self.assertRaises(DirtyRepoException):
-        exp = Experiment.from_parser(self.parser, self.original_args_list+self.meticulous_args_list)
-        with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
-            metadata = json.load(f)
-            self.assertIn("git-dirty", metadata)
+        with self.assertRaises(DirtyRepoException):
+            exp = Experiment.from_parser(self.parser, self.original_args_list+self.meticulous_args_list)
+            #with open(os.path.join(self.experiments_folder_id, '1', 'metadata.json'), 'r') as f:
+            #    metadata = json.load(f)
+            #    self.assertIn("git-dirty", metadata)
 
     def tearDown(self):
         with open(os.path.join('simulated_files','dirty_file.txt'), 'w') as f:
