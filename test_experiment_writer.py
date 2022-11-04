@@ -1,5 +1,5 @@
 import unittest
-from .training_utils import build_training_parser
+from .training_utils import build_training_parser, build_training_parser_with_required_args
 import subprocess
 import json
 from meticulous import Experiment
@@ -13,6 +13,39 @@ from git import Repo
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
+class RequiredArgsTestCase(unittest.TestCase):
+    def setUp(self):
+        self.experiments_folder_id = os.path.join('temp_files', 'experiments_'+self.id())
+        self.original_args_list = ['16', '--dry-run', '--epochs', '1']
+        self.meticulous_args_list = ['--experiments-directory', self.experiments_folder_id]
+        #Dirty a file in the repo
+        with open(os.path.join('simulated_files', 'dirty_file.txt'), 'w') as f:
+            f.write('made dirty')
+        self.parser = build_training_parser_with_required_args()
+        Experiment.add_argument_group(self.parser)
+
+    def test_args(self):
+        args = vars(self.parser.parse_args(self.original_args_list))
+        exp = Experiment.from_parser(self.parser, self.original_args_list+self.meticulous_args_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'args.json'), 'r') as f:
+            stored_args = json.load(f)
+            self.assertDictEqual(stored_args, args, msg="Stored args don't match actual args")
+        exp.finish()
+
+
+    def test_default_args(self):
+        default_args = vars(self.parser.parse_args(['16']))
+        del default_args['batch-size']
+        Experiment.add_argument_group(self.parser)
+        experiment = Experiment.from_parser(self.parser, self.original_args_list+self.meticulous_args_list)
+        with open(os.path.join(self.experiments_folder_id, '1', 'default_args.json'), 'r') as f:
+            stored_args = json.load(f)
+            self.assertDictEqual(stored_args, default_args, msg="Stored default args don't match actual default args")
+        experiment.finish()
+
+    def tearDown(self):
+        shutil.rmtree(self.experiments_folder_id)
+        pass
 
 class DirtyRepoTestCase(unittest.TestCase):
     def setUp(self):
